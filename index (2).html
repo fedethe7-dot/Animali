@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Animali di casa</title>
+<meta name="theme-color" content="#f7f1ea" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16130f" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Animali">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f1ea; --card:#ffffff; --card2:#f1e9df; --txt:#2b2118; --mut:#8a7b6c; --line:#e7dccf;
+  --acc:#e07a3f; --acc2:#f4a261; --ok:#2a9d8f; --warn:#e9a23b; --bad:#d64545;
+  --sh:0 6px 22px rgba(80,50,20,.10); --r:22px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#16130f; --card:#221d18; --card2:#2c251f; --txt:#f5ede4; --mut:#a8998a; --line:#382f27;
+  --sh:0 6px 22px rgba(0,0,0,.35);
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:Nunito,system-ui,sans-serif}
+body{padding-bottom:calc(90px + env(safe-area-inset-bottom))}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+h1{font-size:28px;font-weight:900;margin:0;letter-spacing:-.5px}
+h2{font-size:18px;font-weight:800;margin:26px 0 10px;display:flex;align-items:center;justify-content:space-between}
+.mut{color:var(--mut)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:calc(18px + env(safe-area-inset-top)) 0 6px}
+.iconbtn{width:42px;height:42px;border-radius:50%;border:0;background:var(--card);box-shadow:var(--sh);display:grid;place-items:center;font-size:18px;cursor:pointer}
+.spin{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+
+/* card animali */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:14px;margin-top:14px}
+.pet{background:var(--card);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);cursor:pointer;transition:transform .15s}
+.pet:active{transform:scale(.97)}
+.pet .ph{position:relative;aspect-ratio:4/4.3;background:linear-gradient(135deg,var(--acc2),var(--acc))}
+.pet .ph img,.hero img{width:100%;height:100%;object-fit:cover;display:block}
+.emo{position:absolute;inset:0;display:grid;place-items:center;font-size:64px}
+.pet .nm{position:absolute;left:0;right:0;bottom:0;padding:26px 12px 10px;background:linear-gradient(transparent,rgba(0,0,0,.6));color:#fff;font-weight:900;font-size:21px}
+.pet .badge{position:absolute;top:10px;right:10px;background:var(--bad);color:#fff;border-radius:99px;font-size:12px;font-weight:800;padding:3px 9px}
+.pet .badge.w{background:var(--warn)}
+.pet .rows{padding:10px 12px 12px;font-size:13.5px}
+.pet .rows div{display:flex;justify-content:space-between;padding:3px 0}
+.pet .rows b{font-weight:800}
+.addpet{border:2px dashed var(--line);background:transparent;box-shadow:none;display:grid;place-items:center;min-height:200px;color:var(--mut);font-weight:800;text-align:center}
+.addpet span{font-size:36px;display:block}
+
+/* liste */
+.list{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.it{display:flex;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+.it:last-child{border-bottom:0}
+.ic{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;font-size:19px;flex:none;background:var(--card2)}
+.it .tx{flex:1;min-width:0}
+.it .t1{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .t2{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .rt{text-align:right;font-size:13px;font-weight:800;flex:none}
+.pill{display:inline-block;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:800}
+.p-bad{background:rgba(214,69,69,.15);color:var(--bad)}
+.p-warn{background:rgba(233,162,59,.18);color:#b9771a}
+.p-ok{background:rgba(42,157,143,.15);color:var(--ok)}
+.empty{padding:22px;text-align:center;color:var(--mut);font-size:14px}
+.month{font-size:13px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;margin:18px 4px 8px}
+
+/* chips */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 6px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{border:0;background:var(--card);box-shadow:var(--sh);padding:8px 14px;border-radius:99px;font-weight:700;white-space:nowrap;cursor:pointer}
+.chip.on{background:var(--acc);color:#fff}
+.chipgrid{display:flex;flex-wrap:wrap;gap:8px}
+.chipgrid .chip{box-shadow:none;background:var(--card2)}
+.chipgrid .chip.on{background:var(--acc);color:#fff}
+
+/* nav */
+.nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:6px;background:var(--card);box-shadow:0 10px 30px rgba(0,0,0,.18);border-radius:99px;padding:6px;z-index:20}
+.nav button{border:0;background:transparent;padding:10px 18px;border-radius:99px;font-weight:800;cursor:pointer;color:var(--mut)}
+.nav button.on{background:var(--card2);color:var(--txt)}
+.nav .fab{background:var(--acc);color:#fff;width:48px;height:48px;padding:0;font-size:26px;line-height:1}
+
+/* pagina dettaglio */
+.page{position:fixed;inset:0;background:var(--bg);overflow-y:auto;z-index:30;transform:translateX(100%);transition:transform .25s ease;padding-bottom:110px}
+.page.open{transform:none}
+.hero{position:relative;height:330px;background:linear-gradient(135deg,var(--acc2),var(--acc))}
+.hero .emo{font-size:110px}
+.hero .shade{position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.35),transparent 35%,transparent 55%,rgba(0,0,0,.65))}
+.hero .back{position:absolute;top:calc(14px + env(safe-area-inset-top));left:14px}
+.hero .edit{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px}
+.hero .ttl{position:absolute;left:18px;right:18px;bottom:16px;color:#fff}
+.hero .ttl h1{font-size:36px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:-6px;padding-top:16px}
+.stat{background:var(--card);border-radius:18px;padding:12px 14px;box-shadow:var(--sh)}
+.stat .l{font-size:12px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.stat .v{font-size:19px;font-weight:900;margin-top:2px}
+.stat .s{font-size:12px;color:var(--mut)}
+.bigbtn{width:100%;border:0;background:var(--acc);color:#fff;font-weight:900;padding:15px;border-radius:16px;font-size:16px;margin-top:14px;cursor:pointer}
+.bigbtn.sec{background:var(--card);color:var(--txt);box-shadow:var(--sh)}
+.bigbtn.del{background:transparent;color:var(--bad);box-shadow:none}
+.bigbtn:disabled{opacity:.6}
+.info .it{cursor:default}
+.info .it .rt{font-weight:700;color:var(--txt);max-width:60%;white-space:normal}
+.chart{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:14px}
+.chart svg{width:100%;height:150px;display:block}
+
+/* modali */
+.mod{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:none;align-items:flex-end;justify-content:center}
+.mod.open{display:flex}
+.sheet{background:var(--bg);width:100%;max-width:640px;max-height:92vh;overflow-y:auto;border-radius:26px 26px 0 0;padding:10px 18px calc(24px + env(safe-area-inset-bottom));animation:up .22s ease}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
+.grab{width:44px;height:5px;border-radius:9px;background:var(--line);margin:4px auto 12px}
+.sheet h3{margin:0 0 14px;font-size:22px;font-weight:900;display:flex;justify-content:space-between;align-items:center}
+.x{border:0;background:var(--card2);width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px}
+label.f{display:block;margin:12px 0 0}
+label.f>span{display:block;font-size:13px;font-weight:800;color:var(--mut);margin:0 0 6px 4px}
+.inp{width:100%;border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:12px 14px;font-size:16px;outline:none}
+.inp:focus{border-color:var(--acc)}
+textarea.inp{min-height:76px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.photopick{display:flex;align-items:center;gap:14px;margin:4px 0 4px}
+.photopick .pv{width:92px;height:92px;border-radius:24px;background:linear-gradient(135deg,var(--acc2),var(--acc));overflow:hidden;display:grid;place-items:center;font-size:40px;flex:none}
+.photopick .pv img{width:100%;height:100%;object-fit:cover}
+.photopick label{background:var(--card);box-shadow:var(--sh);padding:10px 14px;border-radius:12px;font-weight:800;cursor:pointer}
+.evphoto{margin-top:10px;border-radius:16px;overflow:hidden;max-height:260px}
+.evphoto img{width:100%;display:block}
+.hint{font-size:12.5px;color:var(--mut);margin:6px 4px 0}
+
+/* blocco */
+#lock{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;align-items:center;justify-content:center;padding:24px}
+#lock.open{display:flex}
+#lock .box{width:100%;max-width:380px;text-align:center}
+#lock .paw{font-size:64px}
+#lock .err{color:var(--bad);font-weight:800;min-height:22px;margin-top:10px}
+
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(20px);background:#2b2118;color:#fff;padding:11px 18px;border-radius:99px;font-weight:800;opacity:0;transition:.25s;z-index:200;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- BLOCCO: codice famiglia -->
+<div id="lock">
+  <div class="box">
+    <div class="paw">🐾</div>
+    <h1>Animali di casa</h1>
+    <p class="mut">App di famiglia. Inserisci il codice e scegli chi sei.</p>
+    <label class="f"><span>Codice famiglia</span><input class="inp" id="lkCode" type="password" autocomplete="off"></label>
+    <label class="f"><span>Chi sei?</span></label>
+    <div class="chipgrid" id="lkChi" style="justify-content:center"></div>
+    <input class="inp hide" id="lkAltro" placeholder="Il tuo nome" style="margin-top:10px">
+    <button class="bigbtn" id="lkGo">Entra</button>
+    <div class="err" id="lkErr"></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="mut" id="ciao" style="font-weight:700">Ciao!</div>
+      <h1 id="titolo">I nostri animali</h1>
+    </div>
+    <button class="iconbtn" id="btnRefresh" title="Aggiorna">⟳</button>
+  </div>
+
+  <!-- HOME -->
+  <section id="vHome">
+    <div class="grid" id="pets"></div>
+    <h2>Da fare presto</h2>
+    <div class="list" id="homeScad"></div>
+    <h2>Ultime attività <a class="mut" style="font-size:14px;cursor:pointer" onclick="vai('reg')">Vedi tutto</a></h2>
+    <div class="list" id="homeUlt"></div>
+  </section>
+
+  <!-- REGISTRO -->
+  <section id="vReg" class="hide">
+    <div class="chips" id="regAnimali" style="margin-top:12px"></div>
+    <div class="chips" id="regTipi"></div>
+    <div id="regList"></div>
+  </section>
+</div>
+
+<nav class="nav">
+  <button id="navHome" class="on" onclick="vai('home')">🐾 Animali</button>
+  <button class="fab" onclick="apriEvento()" title="Registra">+</button>
+  <button id="navReg" onclick="vai('reg')">📋 Registro</button>
+</nav>
+
+<!-- DETTAGLIO ANIMALE -->
+<div class="page" id="pgPet"></div>
+
+<!-- MODALE ANIMALE -->
+<div class="mod" id="mAnimale"><div class="sheet">
+  <div class="grab"></div>
+  <h3><span id="maTit">Nuovo animale</span><button class="x" onclick="chiudi('mAnimale')">✕</button></h3>
+  <div class="photopick">
+    <div class="pv" id="maPv">🐶</div>
+    <label>📷 Scegli foto<input type="file" accept="image/*" id="maFile" hidden></label>
+  </div>
+  <label class="f"><span>Nome *</span><input class="inp" id="maNome"></label>
+  <div class="row2">
+    <label class="f"><span>Specie</span><select class="inp" id="maSpecie"></select></label>
+    <label class="f"><span>Sesso</span><select class="inp" id="maSesso"><option value="">—</option><option>Femmina</option><option>Maschio</option></select></label>
+  </div>
+  <div class="row2">
+    <label class="f"><span>Data di nascita</span><input class="inp" type="date" id="maNascita"></label>
+    <label class="f" id="maTagliaBox"><span>Taglia (da adulto)</span><select class="inp" id="maTaglia">
+      <option value="Piccola">Piccola (&lt;10 kg)</option><option value="Media">Media (10–25 kg)</option>
+      <option value="Grande">Grande (25–45 kg)</option><option value="Gigante">Gigante (&gt;45 kg)</option></select></label>
+  </div>
+  <p class="hint" id="maTagliaHint">La taglia serve per calcolare bene l'età "umana": i cani grandi invecchiano più in fretta.</p>
+  <div class="row2">
+    <label class="f"><span>Razza</span><input class="inp" id="maRazza"></label>
+    <label class="f"><span>Colore / mantello</span><input class="inp" id="maColore"></label>
+  </div>
+  <div class="row2">
+    <label class="f"><span>Microchip</span><input class="inp" id="maChip" inputmode="numeric"></label>
+    <label class="f"><span>Sterilizzato/a</span><select class="inp" id="maSter"><option value="">—</option><option>Sì</option><option>No</option></select></label>
+  </div>
+  <div class="row2">
+    <label class="f"><span>Veterinario</span><input class="inp" id="maVet"></label>
+    <label class="f"><span>Tel. veterinario</span><input class="inp" id="maTel" type="tel"></label>
+  </div>
+  <label class="f"><span>Note (allergie, cibo, carattere…)</span><textarea class="inp" id="maNote"></textarea></label>
+  <button class="bigbtn" id="maSalva">Salva</button>
+  <button class="bigbtn del hide" id="maArchivia">Archivia animale</button>
+</div></div>
+
+<!-- MODALE EVENTO -->
+<div class="mod" id="mEvento"><div class="sheet">
+  <div class="grab"></div>
+  <h3><span id="meTit">Registra</span><button class="x" onclick="chiudi('mEvento')">✕</button></h3>
+  <label class="f"><span>Per chi?</span></label>
+  <div class="chipgrid" id="meAnimali"></div>
+  <label class="f"><span>Cosa?</span></label>
+  <div class="chipgrid" id="meTipi"></div>
+  <div class="row2">
+    <label class="f"><span>Data</span><input class="inp" type="date" id="meData"></label>
+    <label class="f"><span>Peso (kg)</span><input class="inp" id="mePeso" inputmode="decimal" placeholder="es. 12,4"></label>
+  </div>
+  <label class="f"><span>Descrizione</span><input class="inp" id="meDesc" placeholder="es. Richiamo trivalente, Dott.ssa Rossi"></label>
+  <label class="f"><span>Prossima scadenza</span></label>
+  <div class="chipgrid" id="meScadQuick"></div>
+  <input class="inp" type="date" id="meScad" style="margin-top:8px">
+  <div class="row2">
+    <label class="f"><span>Costo (€)</span><input class="inp" id="meCosto" inputmode="decimal"></label>
+    <label class="f"><span>Foto (ricetta, referto…)</span>
+      <label class="inp" style="display:block;cursor:pointer;text-align:center">📎 Allega<input type="file" accept="image/*" id="meFile" hidden></label></label>
+  </div>
+  <div class="evphoto hide" id="mePv"></div>
+  <label class="f"><span>Note</span><textarea class="inp" id="meNote"></textarea></label>
+  <p class="hint" id="meChi"></p>
+  <button class="bigbtn" id="meSalva">Salva</button>
+  <button class="bigbtn del hide" id="meElimina">Elimina</button>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ CONFIGURAZIONE ============ */
+const API_URL = 'https://script.google.com/macros/s/AKfycbwNiO6zEPwRaKBYlKThhAcG_T4x9eyxcTgsYctVRcWJfaDktp7Jl9gS00yraGfQFZVN/exec';   // URL dell'app web Apps Script (finisce con /exec)
+const FAMIGLIA = ['Federico', 'Mamma', 'Sorella'];
+
+/* ============ COSTANTI ============ */
+const SPECIE = {Cane:'🐶', Gatto:'🐱', Coniglio:'🐰', Uccello:'🐦', Pesce:'🐟', Tartaruga:'🐢', Criceto:'🐹', Altro:'🐾'};
+const TIPI = {
+  'Visita':          {ic:'🩺', scad:12},
+  'Vaccino':         {ic:'💉', scad:12},
+  'Antiparassitario':{ic:'🛡️', scad:1},
+  'Sverminazione':   {ic:'🪱', scad:3},
+  'Farmaco':         {ic:'💊', scad:0},
+  'Analisi':         {ic:'🧪', scad:0},
+  'Peso':            {ic:'⚖️', scad:0},
+  'Toelettatura':    {ic:'🛁', scad:0},
+  'Intervento':      {ic:'🏥', scad:0},
+  'Altro':           {ic:'📝', scad:0}
+};
+// Età "umana" (tabella AVMA / veterinaria per taglia): valore a 1,2,3... anni
+const TAB_ETA = {
+  Piccola:[15,24,28,32,36,40,44,48,52,56,60,64,68,72,76,80],
+  Media:  [15,24,28,32,36,42,47,51,56,60,65,69,74,78,83,87],
+  Grande: [15,24,28,32,36,45,50,55,61,66,72,77,82,88,93,99],
+  Gigante:[12,22,31,38,45,49,56,64,71,79,86,93,100,107,114,121],
+  Gatto:  [15,24,28,32,36,40,44,48,52,56,60,64,68,72,76,80]
+};
+const MESI = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+
+/* ============ STATO ============ */
+let S = {animali:[], registro:[]};
+let cfg = carica_ls('animali_cfg') || {};
+let filtroAnimale = '', filtroTipo = '', petAperto = null;
+
+function carica_ls(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
+function salva_ls(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ============ DATE ED ETÀ ============ */
+function pd(s){ if(!s) return null; const m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/); return m? new Date(+m[1], +m[2]-1, +m[3]) : null; }
+function iso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function oggi(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
+function fd(s){ const d=pd(s); return d? d.toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric'}) : '—'; }
+function ggA(s){ const d=pd(s); return d? Math.round((d-oggi())/864e5) : null; }
+function addMesi(s, n){ const d=pd(s)||oggi(); const g=d.getDate(); d.setDate(1); d.setMonth(d.getMonth()+n); d.setDate(Math.min(g, new Date(d.getFullYear(), d.getMonth()+1, 0).getDate())); return iso(d); }
+
+function diffYMD(nascita, rif){
+  rif = rif || oggi();
+  let y=rif.getFullYear()-nascita.getFullYear(), m=rif.getMonth()-nascita.getMonth(), d=rif.getDate()-nascita.getDate();
+  if(d<0){ m--; d += new Date(rif.getFullYear(), rif.getMonth(), 0).getDate(); }
+  if(m<0){ y--; m += 12; }
+  return {y,m,d};
+}
+function etaTesto(a){
+  const n=pd(a.nascita); if(!n) return '—';
+  const {y,m,d}=diffYMD(n);
+  if(y>0) return y+(y===1?' anno':' anni')+(m? ' e '+m+(m===1?' mese':' mesi'):'');
+  if(m>0) return m+(m===1?' mese':' mesi')+(d? ' e '+d+' gg':'');
+  return d+(d===1?' giorno':' giorni');
+}
+function etaUmana(a){
+  const n=pd(a.nascita); if(!n) return null;
+  let t;
+  if(a.specie==='Cane') t=TAB_ETA[a.taglia]||TAB_ETA.Media;
+  else if(a.specie==='Gatto') t=TAB_ETA.Gatto;
+  else return null;
+  const anni=(oggi()-n)/(365.2425*864e5);
+  if(anni<=0) return 0;
+  const L=t.length, v=k=> k<=L ? t[k-1] : t[L-1]+(k-L)*(t[L-1]-t[L-2]);
+  if(anni<1) return Math.round(t[0]*anni);
+  const i=Math.floor(anni), f=anni-i;
+  return Math.round(v(i)+(v(i+1)-v(i))*f);
+}
+function compleanno(a){
+  const n=pd(a.nascita); if(!n) return null;
+  const o=oggi(); let c=new Date(o.getFullYear(), n.getMonth(), n.getDate());
+  if(c<o) c=new Date(o.getFullYear()+1, n.getMonth(), n.getDate());
+  return {gg:Math.round((c-o)/864e5), anni:c.getFullYear()-n.getFullYear()};
+}
+
+/* ============ DATI DERIVATI ============ */
+const attivi = () => S.animali.filter(a => String(a.archiviato).toLowerCase().indexOf('s')!==0);
+const animale = id => S.animali.find(a => String(a.id)===String(id));
+const ordinaEv = (a,b) => (b.data||'').localeCompare(a.data||'') || String(b.creato||'').localeCompare(String(a.creato||''));
+function eventiDi(id){ return S.registro.filter(e => String(e.animaleId)===String(id)).sort(ordinaEv); }
+function pesi(id){ return S.registro.filter(e => String(e.animaleId)===String(id) && parseFloat(e.peso)>0).sort((a,b)=>(a.data||'').localeCompare(b.data||'')); }
+function ultimoPeso(id){ const p=pesi(id); return p.length? p[p.length-1] : null; }
+function kg(x){ return (Math.round(parseFloat(x)*10)/10).toLocaleString('it-IT')+' kg'; }
+// Scadenze: per ogni animale+tipo conta solo l'ultima registrazione
+function scadenze(id){
+  const ult={};
+  S.registro.slice().sort(ordinaEv).forEach(e => { const k=e.animaleId+'|'+e.tipo; if(!ult[k]) ult[k]=e; });
+  const vivi=new Set(attivi().map(a=>String(a.id)));
+  return Object.values(ult).filter(e => e.scadenza && vivi.has(String(e.animaleId)) && (!id || String(e.animaleId)===String(id)))
+    .map(e => ({...e, gg:ggA(e.scadenza)})).sort((a,b)=>a.gg-b.gg);
+}
+function pillScad(gg){
+  if(gg<0) return '<span class="pill p-bad">scaduto da '+(-gg)+' gg</span>';
+  if(gg===0) return '<span class="pill p-bad">oggi</span>';
+  if(gg<=14) return '<span class="pill p-warn">tra '+gg+' gg</span>';
+  return '<span class="pill p-ok">'+(gg<60? 'tra '+gg+' gg' : 'tra '+Math.round(gg/30)+' mesi')+'</span>';
+}
+
+/* ============ API ============ */
+async function api(action, dati){
+  if(!/^https:/.test(API_URL)) throw new Error('Manca l\'indirizzo Apps Script in index.html');
+  let r;
+  if(action==='dati' || action==='foto'){
+    const q = new URLSearchParams({action, k:cfg.k||'', ...(dati||{})});
+    r = await fetch(API_URL+'?'+q.toString());
+  } else {
+    r = await fetch(API_URL, {method:'POST', body: JSON.stringify({action, k:cfg.k||'', ...(dati||{})})});
+  }
+  const j = await r.json();
+  if(!j.ok){ if(j.errore==='codice'){ apriLock('Codice famiglia non valido'); } throw new Error(j.errore||'Errore'); }
+  return j;
+}
+
+async function aggiorna(silenzioso){
+  const b=$('btnRefresh'); b.classList.add('spin');
+  try{
+    const j = await api('dati');
+    S = {animali:j.animali||[], registro:j.registro||[]};
+    salva_ls('animali_dati', S);
+    render();
+  }catch(e){ if(!silenzioso) toast('⚠️ '+e.message); }
+  finally{ b.classList.remove('spin'); }
+}
+
+/* ============ FOTO ============ */
+const fotoMem = {}, fotoPending = {};
+function getFoto(id){
+  if(fotoMem[id]) return Promise.resolve(fotoMem[id]);
+  try{ const c=localStorage.getItem('foto_'+id); if(c){ fotoMem[id]=c; return Promise.resolve(c); } }catch(e){}
+  if(!fotoPending[id]) fotoPending[id] = api('foto',{id}).then(j => {
+    const src='data:image/jpeg;base64,'+j.b64; fotoMem[id]=src;
+    try{ localStorage.setItem('foto_'+id, src); }catch(e){}
+    return src;
+  }).finally(()=>{ delete fotoPending[id]; });
+  return fotoPending[id];
+}
+function riempiFoto(root){
+  (root||document).querySelectorAll('[data-foto]').forEach(el => {
+    const id=el.dataset.foto; if(!id) return;
+    getFoto(id).then(src => { el.innerHTML='<img alt="" src="'+src+'">'; }).catch(()=>{});
+  });
+}
+function comprimi(file, max){
+  return new Promise((ok,ko) => {
+    const img=new Image(), url=URL.createObjectURL(file);
+    img.onload=()=>{
+      const s=Math.min(1, max/Math.max(img.width,img.height));
+      const c=document.createElement('canvas'); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url); ok(c.toDataURL('image/jpeg',0.82));
+    };
+    img.onerror=ko; img.src=url;
+  });
+}
+async function caricaFoto(dataUrl, nome){
+  const j = await api('caricaFoto', {b64:dataUrl.split(',')[1], nome});
+  fotoMem[j.id]=dataUrl; try{ localStorage.setItem('foto_'+j.id, dataUrl); }catch(e){}
+  return j.id;
+}
+function bloccoFoto(a, cls){
+  return '<div class="'+cls+'"'+(a.foto? ' data-foto="'+esc(a.foto)+'"':'')+'><div class="emo">'+(SPECIE[a.specie]||'🐾')+'</div></div>';
+}
+
+/* ============ RENDER ============ */
+function render(){
+  $('ciao').textContent = 'Ciao '+(cfg.chi||'')+' 👋';
+  renderHome(); renderReg();
+  if(petAperto) apriPet(petAperto, true);
+}
+
+function renderHome(){
+  const sc = scadenze();
+  $('pets').innerHTML = attivi().map(a => {
+    const p=ultimoPeso(a.id);
+    return '<div class="pet" onclick="apriPet(\''+esc(a.id)+'\')">'
+      + '<div class="ph"'+(a.foto?' data-foto="'+esc(a.foto)+'"':'')+'><div class="emo">'+(SPECIE[a.specie]||'🐾')+'</div></div>'
+      + '<div class="rows">'
+      + '<div><span class="mut">Età</span><b>'+etaTesto(a)+'</b></div>'
+      + '<div><span class="mut">Nato/a il</span><b>'+(a.nascita? fd(a.nascita):'—')+'</b></div>'
+      + '<div><span class="mut">Peso</span><b>'+(p? kg(p.peso):'—')+'</b></div>'
+      + '</div></div>';
+  }).join('') + '<div class="pet addpet" onclick="apriAnimale()"><div><span>＋</span>Aggiungi animale</div></div>';
+  // nome e badge sopra la foto (inseriti dopo per non far sparire l'img)
+  attivi().forEach((a,i) => {
+    const ph=$('pets').children[i].querySelector('.ph');
+    const s=sc.filter(e=>String(e.animaleId)===String(a.id) && e.gg<=14);
+    const over=document.createElement('div'); over.className='nm'; over.textContent=a.nome; ph.appendChild(over);
+    if(s.length){ const b=document.createElement('div'); b.className='badge'+(s.some(e=>e.gg<=0)?'':' w'); b.textContent=s.length===1?'1 scadenza':s.length+' scadenze'; ph.appendChild(b); }
+  });
+  riempiFotoPet();
+
+  const prossime = sc.filter(e => e.gg<=60);
+  $('homeScad').innerHTML = prossime.length ? prossime.map(rigaScad).join('') : '<div class="empty">Nessuna scadenza nei prossimi 2 mesi 🎉</div>';
+  const ult = S.registro.slice().sort(ordinaEv).slice(0,5);
+  $('homeUlt').innerHTML = ult.length ? ult.map(e=>rigaEv(e,true)).join('') : '<div class="empty">Ancora niente. Premi + per registrare la prima attività.</div>';
+}
+// le foto nelle card mantengono nome e badge
+function riempiFotoPet(){
+  document.querySelectorAll('#pets .ph[data-foto]').forEach(el => {
+    getFoto(el.dataset.foto).then(src => { const emo=el.querySelector('.emo'); if(emo) emo.outerHTML='<img alt="" src="'+src+'">'; }).catch(()=>{});
+  });
+}
+
+function rigaScad(e){
+  const a=animale(e.animaleId)||{};
+  return '<div class="it" onclick="apriEvento(null,\''+esc(e.animaleId)+'\',\''+esc(e.tipo)+'\')">'
+    + '<div class="ic">'+(TIPI[e.tipo]?.ic||'📝')+'</div>'
+    + '<div class="tx"><div class="t1">'+esc(e.tipo)+' · '+esc(a.nome||e.animale)+'</div><div class="t2">entro il '+fd(e.scadenza)+'</div></div>'
+    + '<div class="rt">'+pillScad(e.gg)+'</div></div>';
+}
+function rigaEv(e, conNome){
+  const a=animale(e.animaleId)||{};
+  const sub=[conNome? (a.nome||e.animale):'', e.descrizione, e.chi? 'da '+e.chi:''].filter(Boolean).join(' · ');
+  const extra = parseFloat(e.peso)>0 ? kg(e.peso) : (parseFloat(e.costo)>0 ? '€ '+parseFloat(e.costo).toLocaleString('it-IT',{minimumFractionDigits:2}) : '');
+  return '<div class="it" onclick="apriEvento(\''+esc(e.id)+'\')">'
+    + '<div class="ic">'+(TIPI[e.tipo]?.ic||'📝')+'</div>'
+    + '<div class="tx"><div class="t1">'+esc(e.tipo)+(e.foto?' 📎':'')+'</div><div class="t2">'+esc(sub)+'</div></div>'
+    + '<div class="rt">'+fd(e.data).replace(/ \d{4}$/,'')+(extra? '<div class="mut" style="font-weight:700">'+extra+'</div>':'')+'</div></div>';
+}
+
+function renderReg(){
+  $('regAnimali').innerHTML = [['','Tutti']].concat(S.animali.map(a=>[a.id, (SPECIE[a.specie]||'🐾')+' '+a.nome]))
+    .map(([id,n]) => '<button class="chip'+(String(filtroAnimale)===String(id)?' on':'')+'" onclick="filtroAnimale=\''+esc(id)+'\';renderReg()">'+esc(n)+'</button>').join('');
+  $('regTipi').innerHTML = [['','Tutto']].concat(Object.keys(TIPI).map(t=>[t, TIPI[t].ic+' '+t]))
+    .map(([t,n]) => '<button class="chip'+(filtroTipo===t?' on':'')+'" onclick="filtroTipo=\''+t+'\';renderReg()">'+n+'</button>').join('');
+  const ev = S.registro.filter(e => (!filtroAnimale || String(e.animaleId)===String(filtroAnimale)) && (!filtroTipo || e.tipo===filtroTipo)).sort(ordinaEv);
+  if(!ev.length){ $('regList').innerHTML='<div class="list" style="margin-top:12px"><div class="empty">Nessuna attività registrata.</div></div>'; return; }
+  let html='', mese='', buf='';
+  ev.forEach(e => {
+    const d=pd(e.data), m=d? MESI[d.getMonth()]+' '+d.getFullYear() : 'Senza data';
+    if(m!==mese){ if(buf) html+='<div class="list">'+buf+'</div>'; buf=''; mese=m; html+='<div class="month">'+m+'</div>'; }
+    buf+=rigaEv(e,true);
+  });
+  html+='<div class="list">'+buf+'</div>';
+  $('regList').innerHTML=html;
+}
+
+/* ============ SCHEDA ANIMALE ============ */
+function apriPet(id, soloRender){
+  const a=animale(id); if(!a){ chiudiPet(); return; }
+  petAperto=id;
+  const p=pesi(id), up=p[p.length-1], prec=p[p.length-2];
+  const eu=etaUmana(a), cp=compleanno(a), sc=scadenze(id), ev=eventiDi(id);
+  let trend='';
+  if(up && prec){ const d=parseFloat(up.peso)-parseFloat(prec.peso); trend=(d>0?'▲ +':d<0?'▼ ':'= ')+(Math.round(d*10)/10).toLocaleString('it-IT')+' kg'; }
+  const info=[['Specie',(SPECIE[a.specie]||'')+' '+(a.specie||'—')],['Razza',a.razza],['Sesso',a.sesso],a.specie==='Cane'?['Taglia',a.taglia]:null,
+    ['Data di nascita',a.nascita?fd(a.nascita):''],['Colore',a.colore],['Microchip',a.microchip],['Sterilizzato/a',a.sterilizzato],
+    ['Veterinario',a.veterinario],['Tel. veterinario',a.telVet? '<a href="tel:'+esc(a.telVet)+'" style="color:var(--acc)">'+esc(a.telVet)+'</a>':''],['Note',a.note]]
+    .filter(r=>r && r[1]);
+  $('pgPet').innerHTML =
+    '<div class="hero">'+'<div style="position:absolute;inset:0"'+(a.foto?' data-foto="'+esc(a.foto)+'"':'')+'><div class="emo">'+(SPECIE[a.specie]||'🐾')+'</div></div>'
+    + '<div class="shade"></div>'
+    + '<button class="iconbtn back" onclick="chiudiPet()">←</button>'
+    + '<button class="iconbtn edit" onclick="apriAnimale(\''+esc(a.id)+'\')">✏️</button>'
+    + '<div class="ttl"><h1>'+esc(a.nome)+'</h1><div style="font-weight:700;opacity:.9">'+esc([a.razza||a.specie, a.sesso].filter(Boolean).join(' · '))+'</div></div></div>'
+    + '<div class="wrap">'
+    + '<div class="stats">'
+    +   stat('Età', etaTesto(a), a.nascita? 'nato/a il '+fd(a.nascita) : 'aggiungi la data di nascita')
+    +   stat('Età umana', eu!==null? '≈ '+eu+' anni' : '—', eu!==null? (a.specie==='Cane'? 'taglia '+(a.taglia||'Media').toLowerCase() : 'gatto') : 'solo cani e gatti')
+    +   stat('Peso', up? kg(up.peso) : '—', up? (trend? trend+' · ':'')+fd(up.data) : 'registra un peso')
+    +   stat('Compleanno', cp? (cp.gg===0? '🎂 Oggi!' : 'tra '+cp.gg+' gg') : '—', cp? 'compie '+cp.anni+(cp.anni===1?' anno':' anni') : '')
+    + '</div>'
+    + '<button class="bigbtn" onclick="apriEvento(null,\''+esc(a.id)+'\')">＋ Registra per '+esc(a.nome)+'</button>'
+    + '<h2>Prossime scadenze</h2><div class="list">'+(sc.length? sc.map(rigaScad).join('') : '<div class="empty">Nessuna scadenza impostata</div>')+'</div>'
+    + (p.length>=2? '<h2>Andamento peso</h2><div class="chart">'+graficoPeso(p)+'</div>' : '')
+    + '<h2>Registro</h2><div class="list">'+(ev.length? ev.map(e=>rigaEv(e,false)).join('') : '<div class="empty">Ancora nessuna attività</div>')+'</div>'
+    + '<h2>Informazioni</h2><div class="list info">'+info.map(r=>'<div class="it"><div class="tx mut" style="font-weight:700">'+r[0]+'</div><div class="rt">'+(r[0]==='Tel. veterinario'?r[1]:esc(r[1]))+'</div></div>').join('')+'</div>'
+    + '</div>';
+  riempiFoto($('pgPet'));
+  if(!soloRender){ $('pgPet').scrollTop=0; requestAnimationFrame(()=>$('pgPet').classList.add('open')); history.pushState({pet:id},''); }
+}
+function stat(l,v,s){ return '<div class="stat"><div class="l">'+l+'</div><div class="v">'+esc(v)+'</div><div class="s">'+esc(s||'')+'</div></div>'; }
+let ignoraPop=false;
+function chiudiPet(){
+  $('pgPet').classList.remove('open'); petAperto=null;
+  if(history.state && history.state.pet){ ignoraPop=true; history.back(); }
+}
+window.addEventListener('popstate', () => { if(ignoraPop){ ignoraPop=false; return; } if(document.querySelector('.mod.open')){ document.querySelectorAll('.mod.open').forEach(m=>m.classList.remove('open')); return; } chiudiPet(); });
+
+function graficoPeso(p){
+  const W=600,H=150,P=22, v=p.map(e=>parseFloat(e.peso)), t=p.map(e=>pd(e.data).getTime());
+  let mn=Math.min(...v), mx=Math.max(...v); if(mx-mn<1){ mn-=0.5; mx+=0.5; }
+  const t0=t[0], t1=t[t.length-1]||t0+1;
+  const X=x=>P+(t1===t0? (W-2*P)/2 : (x-t0)/(t1-t0)*(W-2*P)), Y=y=>H-P-(y-mn)/(mx-mn)*(H-2*P);
+  const pts=p.map((e,i)=>X(t[i]).toFixed(1)+','+Y(v[i]).toFixed(1));
+  return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'
+    + '<polyline points="'+pts.join(' ')+'" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>'
+    + p.map((e,i)=>'<circle cx="'+X(t[i]).toFixed(1)+'" cy="'+Y(v[i]).toFixed(1)+'" r="5" fill="var(--acc)"/>').join('')
+    + '</svg><div style="display:flex;justify-content:space-between;font-size:12px" class="mut"><span>'+fd(p[0].data)+' · '+kg(v[0])+'</span><span>'+fd(p[p.length-1].data)+' · '+kg(v[v.length-1])+'</span></div>';
+}
+
+/* ============ MODALE ANIMALE ============ */
+let maId=null, maFoto=null;
+$('maSpecie').innerHTML = Object.keys(SPECIE).map(s=>'<option>'+s+'</option>').join('');
+function apriAnimale(id){
+  const a = id? animale(id) : {specie:'Cane', taglia:'Media'};
+  maId=id||null; maFoto=null;
+  $('maTit').textContent = id? 'Modifica '+a.nome : 'Nuovo animale';
+  $('maNome').value=a.nome||''; $('maSpecie').value=a.specie||'Cane'; $('maSesso').value=a.sesso||'';
+  $('maNascita').value=a.nascita||''; $('maTaglia').value=a.taglia||'Media'; $('maRazza').value=a.razza||'';
+  $('maColore').value=a.colore||''; $('maChip').value=a.microchip||''; $('maSter').value=a.sterilizzato||'';
+  $('maVet').value=a.veterinario||''; $('maTel').value=a.telVet||''; $('maNote').value=a.note||'';
+  $('maPv').innerHTML=SPECIE[a.specie]||'🐾';
+  if(a.foto){ $('maPv').dataset.foto=a.foto; riempiFoto($('maPv').parentNode); } else delete $('maPv').dataset.foto;
+  $('maArchivia').classList.toggle('hide', !id);
+  taglia(); apri('mAnimale');
+}
+function taglia(){ const c=$('maSpecie').value==='Cane'; $('maTagliaBox').style.visibility=c?'visible':'hidden'; $('maTagliaHint').classList.toggle('hide',!c); if(!maFoto && !$('maPv').dataset.foto) $('maPv').innerHTML=SPECIE[$('maSpecie').value]||'🐾'; }
+$('maSpecie').onchange=taglia;
+$('maFile').onchange=async e => { const f=e.target.files[0]; if(!f) return; maFoto=await comprimi(f,1000); $('maPv').innerHTML='<img src="'+maFoto+'">'; e.target.value=''; };
+$('maSalva').onclick=async () => {
+  const nome=$('maNome').value.trim(); if(!nome) return toast('Scrivi il nome');
+  const b=$('maSalva'); b.disabled=true; b.textContent='Salvataggio…';
+  try{
+    const a={ id:maId||'', nome, specie:$('maSpecie').value, sesso:$('maSesso').value, nascita:$('maNascita').value,
+      taglia:$('maSpecie').value==='Cane'? $('maTaglia').value : '', razza:$('maRazza').value.trim(), colore:$('maColore').value.trim(),
+      microchip:$('maChip').value.trim(), sterilizzato:$('maSter').value, veterinario:$('maVet').value.trim(), telVet:$('maTel').value.trim(), note:$('maNote').value.trim() };
+    if(maFoto) a.foto = await caricaFoto(maFoto, nome);
+    if(!a.id) delete a.id;
+    await api('salvaAnimale', {animale:a});
+    chiudi('mAnimale'); toast('✅ Salvato'); await aggiorna();
+  }catch(e){ toast('⚠️ '+e.message); }
+  finally{ b.disabled=false; b.textContent='Salva'; }
+};
+$('maArchivia').onclick=async () => {
+  const a=animale(maId); if(!confirm('Archiviare '+a.nome+'? Non comparirà più nella home, ma il suo registro resta nel foglio.')) return;
+  try{ await api('archiviaAnimale',{id:maId}); chiudi('mAnimale'); chiudiPet(); toast('Archiviato'); await aggiorna(); }catch(e){ toast('⚠️ '+e.message); }
+};
+
+/* ============ MODALE EVENTO ============ */
+let meId=null, meSel=new Set(), meTipo='Visita', meFoto=null, meFotoId='';
+function apriEvento(id, animaleId, tipo){
+  const e = id? S.registro.find(x=>String(x.id)===String(id)) : null;
+  meId=id||null; meFoto=null; meFotoId=e?.foto||'';
+  meSel=new Set(e? [String(e.animaleId)] : animaleId? [String(animaleId)] : attivi().length===1? [String(attivi()[0].id)] : []);
+  meTipo=e?.tipo || tipo || 'Visita';
+  $('meTit').textContent = e? 'Modifica attività' : 'Registra';
+  $('meData').value=e?.data||iso(oggi()); $('mePeso').value=e?.peso? String(e.peso).replace('.',','):'';
+  $('meDesc').value=e?.descrizione||''; $('meCosto').value=e?.costo? String(e.costo).replace('.',','):'';
+  $('meNote').value=e?.note||''; $('meScad').value=e? (e.scadenza||'') : suggerisciScad();
+  $('mePv').innerHTML=''; $('mePv').classList.add('hide');
+  if(meFotoId){ $('mePv').classList.remove('hide'); $('mePv').dataset.foto=meFotoId; riempiFoto($('mePv').parentNode); } else delete $('mePv').dataset.foto;
+  $('meChi').textContent = e? 'Inserito da '+(e.chi||'?')+(e.creato? ' il '+fd(e.creato):'') : 'Verrà registrato come inserito da '+(cfg.chi||'?');
+  $('meElimina').classList.toggle('hide', !e);
+  disegnaMe(); apri('mEvento');
+}
+function suggerisciScad(){ const m=TIPI[meTipo]?.scad; return m? addMesi($('meData').value, m) : ''; }
+function disegnaMe(){
+  const lista = meId? S.animali.filter(a=>meSel.has(String(a.id))) : attivi();
+  $('meAnimali').innerHTML = lista.map(a => '<button class="chip'+(meSel.has(String(a.id))?' on':'')+'" onclick="toggleMe(\''+esc(a.id)+'\')">'+(SPECIE[a.specie]||'🐾')+' '+esc(a.nome)+'</button>').join('')
+    + (!meId && lista.length>1? '<button class="chip" onclick="tuttiMe()">Tutti</button>' : '');
+  $('meTipi').innerHTML = Object.keys(TIPI).map(t => '<button class="chip'+(meTipo===t?' on':'')+'" onclick="setTipo(\''+t+'\')">'+TIPI[t].ic+' '+t+'</button>').join('');
+  $('meScadQuick').innerHTML = [['Nessuna',0],['1 mese',1],['3 mesi',3],['6 mesi',6],['1 anno',12]]
+    .map(([l,m]) => '<button class="chip" onclick="quickScad('+m+')">'+l+'</button>').join('');
+}
+function quickScad(m){ $('meScad').value = m? addMesi($('meData').value, m) : ''; }
+function toggleMe(id){ if(meId) return; meSel.has(id)? meSel.delete(id) : meSel.add(id); disegnaMe(); }
+function tuttiMe(){ attivi().forEach(a=>meSel.add(String(a.id))); disegnaMe(); }
+function setTipo(t){ const prima=suggerisciScad(); meTipo=t; if(!meId && ($('meScad').value===prima || !$('meScad').value)) $('meScad').value=suggerisciScad(); disegnaMe(); if(t==='Peso') $('mePeso').focus(); }
+$('meData').onchange=()=>{ if(!meId) $('meScad').value=suggerisciScad(); };
+$('meFile').onchange=async e => { const f=e.target.files[0]; if(!f) return; meFoto=await comprimi(f,1600); $('mePv').innerHTML='<img src="'+meFoto+'">'; $('mePv').classList.remove('hide'); e.target.value=''; };
+$('meSalva').onclick=async () => {
+  if(!meSel.size) return toast('Scegli almeno un animale');
+  if(meTipo==='Peso' && !$('mePeso').value) return toast('Scrivi il peso');
+  if(meSel.size>1 && $('mePeso').value) return toast('Il peso va registrato un animale alla volta');
+  const b=$('meSalva'); b.disabled=true; b.textContent='Salvataggio…';
+  try{
+    let foto=meFotoId;
+    if(meFoto) foto=await caricaFoto(meFoto, meTipo);
+    const vecchio = meId? S.registro.find(x=>String(x.id)===String(meId)) : null;
+    const eventi=[...meSel].map(aid => ({
+      id: meId||undefined, animaleId:aid, animale:animale(aid)?.nome||'', data:$('meData').value, tipo:meTipo,
+      descrizione:$('meDesc').value.trim(), peso:$('mePeso').value.trim(), costo:$('meCosto').value.trim(),
+      scadenza:$('meScad').value, chi: vecchio? vecchio.chi : (cfg.chi||''), foto, note:$('meNote').value.trim()
+    }));
+    eventi.forEach(e=>{ if(!e.id) delete e.id; });
+    await api('salvaEventi', {eventi});
+    chiudi('mEvento'); toast('✅ Registrato'); await aggiorna();
+  }catch(e){ toast('⚠️ '+e.message); }
+  finally{ b.disabled=false; b.textContent='Salva'; }
+};
+$('meElimina').onclick=async () => {
+  if(!confirm('Eliminare questa attività dal registro?')) return;
+  try{ await api('eliminaEvento',{id:meId}); chiudi('mEvento'); toast('Eliminata'); await aggiorna(); }catch(e){ toast('⚠️ '+e.message); }
+};
+
+/* ============ NAVIGAZIONE / UI ============ */
+function vai(v){
+  $('vHome').classList.toggle('hide', v!=='home'); $('vReg').classList.toggle('hide', v!=='reg');
+  $('navHome').classList.toggle('on', v==='home'); $('navReg').classList.toggle('on', v==='reg');
+  $('titolo').textContent = v==='home'? 'I nostri animali' : 'Registro';
+  window.scrollTo(0,0);
+}
+function apri(id){ $(id).classList.add('open'); history.pushState({mod:id},''); }
+function chiudi(id){
+  $(id).classList.remove('open');
+  if(history.state && history.state.mod===id){ ignoraPop=true; history.back(); }
+}
+document.querySelectorAll('.mod').forEach(m => m.addEventListener('click', e => { if(e.target===m) chiudi(m.id); }));
+let tT; function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('on'); clearTimeout(tT); tT=setTimeout(()=>el.classList.remove('on'),2600); }
+$('btnRefresh').onclick=()=>aggiorna();
+document.addEventListener('visibilitychange', () => { if(!document.hidden && cfg.k) aggiorna(true); });
+
+/* ============ ACCESSO ============ */
+let lkChi=cfg.chi||'';
+function apriLock(msg){
+  $('lock').classList.add('open'); $('lkErr').textContent=msg||''; $('lkCode').value=cfg.k||'';
+  $('lkChi').innerHTML = FAMIGLIA.concat(['Altro']).map(n => '<button class="chip'+(lkChi===n||(n==='Altro'&&lkChi&&!FAMIGLIA.includes(lkChi))?' on':'')+'" onclick="scegliChi(\''+n+'\')">'+n+'</button>').join('');
+  $('lkAltro').classList.toggle('hide', !(lkChi && !FAMIGLIA.includes(lkChi)));
+  if(lkChi && !FAMIGLIA.includes(lkChi)) $('lkAltro').value=lkChi;
+}
+function scegliChi(n){ lkChi = n==='Altro'? ($('lkAltro').value||' ') : n; apriLock($('lkErr').textContent); if(n==='Altro') $('lkAltro').focus(); }
+$('lkGo').onclick=async () => {
+  const k=$('lkCode').value.trim(); let chi=lkChi.trim();
+  if(!$('lkAltro').classList.contains('hide')) chi=$('lkAltro').value.trim();
+  if(!k) return $('lkErr').textContent='Inserisci il codice';
+  if(!chi) return $('lkErr').textContent='Dimmi chi sei';
+  cfg={k,chi}; salva_ls('animali_cfg',cfg);
+  $('lkGo').disabled=true; $('lkGo').textContent='Controllo…';
+  try{ await api('dati'); $('lock').classList.remove('open'); aggiorna(true); }
+  catch(e){ if(e.message!=='codice') $('lkErr').textContent='⚠️ '+e.message; }
+  finally{ $('lkGo').disabled=false; $('lkGo').textContent='Entra'; }
+};
+
+/* ============ AVVIO ============ */
+(function(){
+  const h=new URLSearchParams(location.hash.slice(1));
+  if(h.get('k')){ cfg.k=h.get('k'); salva_ls('animali_cfg',cfg); history.replaceState(null,'',location.pathname); }
+  const cache=carica_ls('animali_dati'); if(cache){ S=cache; render(); }
+  if(!cfg.k || !cfg.chi) apriLock(); else aggiorna(!!cache);
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
+</body>
+</html>
