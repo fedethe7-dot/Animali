@@ -164,7 +164,10 @@ textarea.inp{min-height:76px;resize:vertical}
       <div class="mut" id="ciao" style="font-weight:700">Ciao!</div>
       <h1 id="titolo">I nostri animali</h1>
     </div>
-    <button class="iconbtn" id="btnRefresh" title="Aggiorna">⟳</button>
+    <div style="display:flex;gap:8px;flex:none">
+      <button class="iconbtn" id="btnRefresh" title="Aggiorna">⟳</button>
+      <button class="iconbtn" id="btnBackup" title="Backup" onclick="apriBackup()">💾</button>
+    </div>
   </div>
 
   <!-- HOME -->
@@ -256,6 +259,23 @@ textarea.inp{min-height:76px;resize:vertical}
   <p class="hint" id="meChi"></p>
   <button class="bigbtn" id="meSalva">Salva</button>
   <button class="bigbtn del hide" id="meElimina">Elimina</button>
+</div></div>
+
+<!-- MODALE BACKUP -->
+<div class="mod" id="mBackup"><div class="sheet">
+  <div class="grab"></div>
+  <h3><span>Backup</span><button class="x" onclick="chiudi('mBackup')">✕</button></h3>
+  <div class="list">
+    <div class="it" style="cursor:default"><div class="ic">🕒</div>
+      <div class="tx"><div class="t1">Ultimo backup</div><div class="t2" id="bkUltimo">mai</div></div></div>
+    <div class="it" style="cursor:default"><div class="ic">📦</div>
+      <div class="tx"><div class="t1">Cosa contiene</div><div class="t2" id="bkCosa">—</div></div></div>
+  </div>
+  <button class="bigbtn" id="bkScarica">💾 Scarica backup completo</button>
+  <button class="bigbtn sec hide" id="bkCondividi">📤 Salva su Drive o invia</button>
+  <button class="bigbtn sec" id="bkCsv">📊 Registro per Excel</button>
+  <p class="hint" id="bkStato"></p>
+  <p class="hint">Il backup completo è un unico file con animali, registro e foto. Conservalo su Google Drive o sul PC: se il foglio Google si rovina, da lì si ricostruisce tutto. Il file "per Excel" contiene solo il registro, da aprire e stampare.</p>
 </div></div>
 
 <div class="toast" id="toast"></div>
@@ -650,6 +670,67 @@ $('meSalva').onclick=async () => {
 $('meElimina').onclick=async () => {
   if(!confirm('Eliminare questa attività dal registro?')) return;
   try{ await api('eliminaEvento',{id:meId}); chiudi('mEvento'); toast('Eliminata'); await aggiorna(); }catch(e){ toast('⚠️ '+e.message); }
+};
+
+/* ============ BACKUP ============ */
+function nomeFile(est){ const d=new Date(); return 'Animali-backup-'+iso(d)+'_'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+'.'+est; }
+function scaricaBlob(blob, nome){
+  const url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download=nome; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 60000);
+}
+function apriBackup(){
+  const u=carica_ls('animali_ultimo_backup');
+  $('bkUltimo').textContent = u? fd(u.data)+' · '+u.descr : 'mai fatto';
+  const nFoto=new Set(S.animali.map(a=>a.foto).concat(S.registro.map(e=>e.foto)).filter(Boolean)).size;
+  $('bkCosa').textContent = S.animali.length+(S.animali.length===1?' animale':' animali')+' · '+S.registro.length+' attività · '+nFoto+' foto';
+  $('bkStato').textContent=''; bkFile=null;
+  $('bkCondividi').classList.toggle('hide', !(navigator.canShare && window.File));
+  apri('mBackup');
+}
+let bkFile=null;
+async function preparaBackup(){
+  const b=$('bkScarica'), c=$('bkCondividi'); b.disabled=c.disabled=true;
+  try{
+    await aggiorna(true);  // prima prendo i dati più freschi dal foglio
+    const ids=[...new Set(S.animali.map(a=>a.foto).concat(S.registro.map(e=>e.foto)).filter(Boolean))];
+    const foto={}; let mancanti=0;
+    for(let i=0;i<ids.length;i++){
+      $('bkStato').textContent='Preparo le foto… '+(i+1)+' di '+ids.length;
+      try{ foto[ids[i]]=await getFoto(ids[i]); }catch(e){ mancanti++; }
+    }
+    const dati={app:'Animali di casa', tipo:'backup', versione:1, creato:new Date().toISOString(), da:cfg.chi||'',
+      animali:S.animali, registro:S.registro, foto};
+    bkFile=new File([JSON.stringify(dati)], nomeFile('json'), {type:'application/json'});
+    const descr=S.animali.length+' animali, '+S.registro.length+' attività, '+Object.keys(foto).length+' foto';
+    salva_ls('animali_ultimo_backup', {data:iso(new Date()), descr});
+    $('bkUltimo').textContent='oggi · '+descr;
+    $('bkStato').textContent = mancanti? '⚠️ '+mancanti+' foto non scaricate (connessione?). Il resto è nel file.' : '✅ Backup pronto ('+Math.max(1,Math.round(bkFile.size/1024))+' KB)';
+    return bkFile;
+  }finally{ b.disabled=c.disabled=false; }
+}
+$('bkScarica').onclick=async () => {
+  try{ const f=await preparaBackup(); scaricaBlob(f, f.name); toast('💾 Backup scaricato'); }
+  catch(e){ $('bkStato').textContent='⚠️ '+e.message; }
+};
+$('bkCondividi').onclick=async () => {
+  try{
+    const f=bkFile || await preparaBackup();
+    if(!navigator.canShare({files:[f]})){ scaricaBlob(f, f.name); toast('💾 Backup scaricato'); return; }
+    await navigator.share({files:[f], title:'Backup Animali di casa'});
+  }catch(e){
+    if(e.name==='NotAllowedError') $('bkStato').textContent='✅ Backup pronto: tocca di nuovo «Salva su Drive o invia».';
+    else if(e.name!=='AbortError') $('bkStato').textContent='⚠️ '+e.message;
+  }
+};
+$('bkCsv').onclick=() => {
+  const cella=v=>{ const s=String(v??''); return /[";\n]/.test(s)? '"'+s.replace(/"/g,'""')+'"' : s; };
+  const num=v=>String(v??'').replace('.',',');
+  const righe=[['Data','Animale','Tipo','Descrizione','Peso (kg)','Costo (€)','Prossima scadenza','Inserito da','Note']];
+  S.registro.slice().sort(ordinaEv).forEach(e => righe.push([e.data, animale(e.animaleId)?.nome||e.animale, e.tipo, e.descrizione, num(e.peso), num(e.costo), e.scadenza, e.chi, e.note]));
+  const csv='﻿'+righe.map(r=>r.map(cella).join(';')).join('\r\n');  // il ; e il BOM servono a Excel italiano
+  scaricaBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}), nomeFile('csv').replace('backup','registro'));
+  toast('📊 Registro esportato');
 };
 
 /* ============ NAVIGAZIONE / UI ============ */
