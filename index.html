@@ -61,6 +61,7 @@ h2{font-size:18px;font-weight:800;margin:26px 0 10px;display:flex;align-items:ce
 .it .t1{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .it .t2{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .it .rt{text-align:right;font-size:13px;font-weight:800;flex:none}
+.it .rt .prog{display:inline-block;margin-top:6px;font-size:12.5px;font-weight:700;text-decoration:none;padding:5px 10px;border-radius:12px;background:var(--card2,rgba(127,127,127,.15));color:inherit}
 .pill{display:inline-block;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:800}
 .p-bad{background:rgba(214,69,69,.15);color:var(--bad)}
 .p-warn{background:rgba(233,162,59,.18);color:#b9771a}
@@ -165,6 +166,7 @@ textarea.inp{min-height:76px;resize:vertical}
       <h1 id="titolo">I nostri animali</h1>
     </div>
     <div style="display:flex;gap:8px;flex:none">
+      <a class="iconbtn" href="../Casa/" title="Le mie app" aria-label="Le mie app"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2.5" fill="#34a373"/><rect x="13" y="3" width="8" height="8" rx="2.5" fill="#e0962f"/><rect x="3" y="13" width="8" height="8" rx="2.5" fill="#9b72ff"/><rect x="13" y="13" width="8" height="8" rx="2.5" fill="#8fa6ff"/></svg></a>
       <button class="iconbtn" id="btnRefresh" title="Aggiorna">⟳</button>
       <button class="iconbtn" id="btnBackup" title="Backup" onclick="apriBackup()">💾</button>
     </div>
@@ -494,7 +496,13 @@ function rigaScad(e){
   return '<div class="it" onclick="apriEvento(null,\''+esc(e.animaleId)+'\',\''+esc(e.tipo)+'\')">'
     + '<div class="ic">'+(TIPI[e.tipo]?.ic||'📝')+'</div>'
     + '<div class="tx"><div class="t1">'+esc(e.tipo)+' · '+esc(a.nome||e.animale)+'</div><div class="t2">entro il '+fd(e.scadenza)+'</div></div>'
-    + '<div class="rt">'+pillScad(e.gg)+'</div></div>';
+    + '<div class="rt">'+pillScad(e.gg)+'<br><a class="prog" href="'+esc(linkLavori(e,a))+'" onclick="event.stopPropagation()">📅 In Lavori</a></div></div>';
+}
+// Ecosistema: crea il promemoria come lavoro di famiglia nell'app Lavori di casa
+function linkLavori(e, a){
+  const nome=a.nome||e.animale||'';
+  const q=new URLSearchParams({emoji:'🐶', titolo:(e.tipo+' '+nome).trim(), data:e.scadenza||'', dettagli:'Da Animali di casa: '+e.tipo+' per '+nome+' entro il '+fd(e.scadenza)});
+  return '../Lavori/#nuovo?'+q.toString();
 }
 function rigaEv(e, conNome){
   const a=animale(e.animaleId)||{};
