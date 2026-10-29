@@ -740,7 +740,7 @@ async function mandaACasa(){
       await gcApi('saveSettings', {settings:{...set, categories:(set.categories||[]).concat([GC_CAT])}}, sess);
     }
     // 2) spese da avere: attività dal 2027 con un costo
-    const casa = set.houses.find(h=>/casa/i.test(h.name)) || set.houses[0];
+    const casa = set.houses.find(h=>h.id==='h_casa') || set.houses.find(h=>/^casa$/i.test(String(h.name).trim())) || set.houses[0];
     const payer = casa.defaultPayer || (casa.members||[])[0] || j.me;
     const voglio = {};
     S.registro.forEach(e => {
