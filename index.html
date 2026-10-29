@@ -409,7 +409,8 @@ async function aggiorna(silenzioso){
     S = {animali:j.animali||[], registro:j.registro||[]};
     salva_ls('animali_dati', S);
     render();
-  }catch(e){ if(!silenzioso) toast('⚠️ '+e.message); }
+    return true;
+  }catch(e){ if(!silenzioso) toast('⚠️ '+e.message); return false; }
   finally{ b.classList.remove('spin'); }
 }
 
@@ -672,14 +673,106 @@ $('meSalva').onclick=async () => {
     }));
     eventi.forEach(e=>{ if(!e.id) delete e.id; });
     await api('salvaEventi', {eventi});
-    chiudi('mEvento'); toast('✅ Registrato'); await aggiorna();
+    chiudi('mEvento'); toast('✅ Registrato'); if(await aggiorna()) mandaACasa();
   }catch(e){ toast('⚠️ '+e.message); }
   finally{ b.disabled=false; b.textContent='Salva'; }
 };
 $('meElimina').onclick=async () => {
   if(!confirm('Eliminare questa attività dal registro?')) return;
-  try{ await api('eliminaEvento',{id:meId}); chiudi('mEvento'); toast('Eliminata'); await aggiorna(); }catch(e){ toast('⚠️ '+e.message); }
+  try{ await api('eliminaEvento',{id:meId}); chiudi('mEvento'); toast('Eliminata'); if(await aggiorna()) mandaACasa(); }catch(e){ toast('⚠️ '+e.message); }
 };
+
+/* ============ SPESE IN GESTIONE CASA ============
+   Dal 2027 ogni attività con un costo diventa una spesa in Gestione Casa, categoria 🐾 Animali
+   (creata da sola se manca). Voce generica: "Veterinario" per visite, vaccini, farmaci, analisi
+   e interventi; "Acquisto per cani" per il resto. Paga chi paga di solito nella casa (modificabile
+   poi in Gestione Casa). Modifiche ed eliminazioni qui si riflettono anche là. */
+const GC_URL = 'https://script.google.com/macros/s/AKfycbx_UKlBm4SKEYtPWrUO9bh1MuMBBKSzJbpgFQj1j9pbW5oFF3bkJL5DevaKj1rF537-wA/exec';
+const GC_DAL = '2027-01-01';
+const GC_CAT = {id:'animali', name:'Animali', emoji:'🐾', base:true};
+const GC_VET = ['Visita','Vaccino','Farmaco','Analisi','Intervento','Antiparassitario','Sverminazione'];
+const GC_PREF = 'eanim_';                       // le spese create da qui: id = eanim_<id attività>
+async function gcApi(action, dati, sess){
+  const r = await fetch(GC_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({...(dati||{}), action, session: sess? sess.session : undefined})});
+  const j = await r.json();
+  if(!j.ok){ const e=new Error(j.error||'ERRORE'); e.code=j.error||'ERRORE'; throw e; }
+  return j;
+}
+// Sessione: quella di Gestione Casa sullo stesso telefono, altrimenti entro con la chiave di sistema
+async function gcSessione(nuova){
+  if(!nuova){
+    const s = carica_ls('animali_gcSess') || carica_ls('gestioneCasa.sessione');
+    if(s && s.session) return s;
+  }
+  let k=''; try{ k = localStorage.getItem('eco.chiave') || ''; }catch(e){}
+  k = k || cfg.k || '';
+  if(!k || !cfg.chi) throw new Error('CHIAVE');
+  const j = await gcApi('loginChiave', {chiave:k, chi:cfg.chi});
+  const s = {session:j.session, admin:j.admin, me:j.me};
+  salva_ls('animali_gcSess', s);
+  return s;
+}
+function gcVoce(e){
+  if(GC_VET.includes(e.tipo)) return 'Veterinario';
+  const a = animale(e.animaleId);
+  return (!a || a.specie==='Cane')? 'Acquisto per cani' : 'Acquisto per animali';
+}
+let gcInCorso=false, gcAncora=false;
+const gcCent = e => Math.round((parseFloat(String(e.costo||'').replace(/[€\s]/g,'').replace(',','.'))||0)*100);
+const gcDaMandare = () => S.registro.some(e => gcCent(e)>0 && String(e.data)>=GC_DAL);
+async function mandaACasa(){
+  if(!gcDaMandare() && !carica_ls('animali_gcUsato')) return;     // prima del 2027 non serve fare niente
+  if(gcInCorso){ gcAncora=true; return; }
+  gcInCorso=true;
+  try{
+    let sess = await gcSessione(), j;
+    try{ j = await gcApi('load', {}, sess); }
+    catch(e){
+      if(e.code!=='NO_LOGIN' && e.code!=='NON_AUTORIZZATO') throw e;
+      localStorage.removeItem('animali_gcSess');
+      sess = await gcSessione(true); j = await gcApi('load', {}, sess);
+    }
+    const st = j.state||{}, set = st.settings;
+    if(!set || !(set.houses||[]).length) return;             // Gestione Casa non ancora preparata
+    // 1) categoria Animali
+    if(!(set.categories||[]).some(c=>c.id===GC_CAT.id) && j.admin){
+      await gcApi('saveSettings', {settings:{...set, categories:(set.categories||[]).concat([GC_CAT])}}, sess);
+    }
+    // 2) spese da avere: attività dal 2027 con un costo
+    const casa = set.houses.find(h=>/casa/i.test(h.name)) || set.houses[0];
+    const payer = casa.defaultPayer || (casa.members||[])[0] || j.me;
+    const voglio = {};
+    S.registro.forEach(e => {
+      const cent = gcCent(e);
+      if(cent>0 && e.id && String(e.data)>=GC_DAL) voglio[GC_PREF+e.id] = {cent, data:String(e.data).slice(0,10), desc:gcVoce(e)};
+    });
+    const esistenti = (st.expenses||[]).filter(x=>String(x.id).startsWith(GC_PREF));
+    let n=0;
+    for(const x of esistenti){
+      const v = voglio[x.id];
+      if(!v){ await gcApi('deleteExpense', {id:x.id}, sess); n++; continue; }
+      delete voglio[x.id];
+      if(x.amount===v.cent && x.date===v.data && x.desc===v.desc) continue;
+      const shares = x.amount===v.cent? x.shares : {[x.payer]:v.cent};   // importo cambiato: resta a chi ha pagato
+      await gcApi('saveExpense', {expense:{...x, amount:v.cent, date:v.data, desc:v.desc, shares, updatedAt:Date.now()}}, sess); n++;
+    }
+    for(const id of Object.keys(voglio)){
+      const v = voglio[id], now = Date.now();
+      await gcApi('saveExpense', {expense:{id, houseId:casa.id, amount:v.cent, cat:GC_CAT.id, desc:v.desc, date:v.data,
+        payer, shares:{[payer]:v.cent}, updatedAt:now, createdBy:j.me, createdAt:now}}, sess); n++;
+    }
+    salva_ls('animali_gcUsato', esistenti.length + Object.keys(voglio).length > 0);
+    if(n) toast('💸 Spese aggiornate in Gestione Casa');
+  }catch(e){
+    const m = e.message==='CHIAVE'? 'manca la chiave di sistema' : e.code==='CHIAVE_ERRATA'? 'la chiave non coincide'
+      : e.code==='TROPPI_TENTATIVI'? 'troppi tentativi, riprova più tardi' : 'nessuna risposta, riprovo al prossimo salvataggio';
+    toast('⚠️ Gestione Casa: '+m);
+  }finally{
+    gcInCorso=false;
+    if(gcAncora){ gcAncora=false; mandaACasa(); }
+  }
+}
 
 /* ============ BACKUP ============ */
 function nomeFile(est){ const d=new Date(); return 'Animali-backup-'+iso(d)+'_'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+'.'+est; }
@@ -785,7 +878,7 @@ $('lkGo').onclick=async () => {
   const h=new URLSearchParams(location.hash.slice(1));
   if(h.get('k')){ cfg.k=h.get('k'); salva_ls('animali_cfg',cfg); history.replaceState(null,'',location.pathname); }
   const cache=carica_ls('animali_dati'); if(cache){ S=cache; render(); }
-  if(!cfg.k || !cfg.chi) apriLock(); else aggiorna(!!cache);
+  if(!cfg.k || !cfg.chi) apriLock(); else aggiorna(!!cache).then(ok => { if(ok) mandaACasa(); });   // riprova anche le spese rimaste indietro
   if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
 </script>
